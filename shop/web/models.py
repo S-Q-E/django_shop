@@ -4,10 +4,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils import timezone
 from PIL import Image
+from django.urls import reverse
 
 User = get_user_model()
 
+def get_product_url(obj, viewname):
+    ct_model = obj.__class__._meta.model_name
+    return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
 
+    
 class Category(models.Model):
     
     class Meta:
@@ -49,6 +54,8 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
+    def get_url(self):
+        return get_product_url(self, 'product_detail')
 
 class PowerBank(Product):
 
@@ -72,9 +79,6 @@ class PowerBank(Product):
     battery_capacity = models.PositiveIntegerField(verbose_name='Ёмоксть батарей: Ma/h')
     outputs = models.CharField(max_length=255, verbose_name='Разъемы', choices=OUTPUT_CHOICES, default=DEFAULT_OUTPUT)
     quick_charge = models.BooleanField(default=False,verbose_name='Поддержка быстрой зарядки')
-
-
-
 
 
 

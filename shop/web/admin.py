@@ -4,6 +4,41 @@ from django.forms import ModelChoiceField, ModelForm, ValidationError
 from PIL import Image
 
 
+class SmartphoneAdminForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance and not instance.sd:
+            self.fields['sd_volume'].widget.attrs.update({
+                'readonly': True, 'style': 'background: black;' 
+            })    
+
+    def clean(self):
+        if not self.cleaned_data['sd']:
+            self.cleaned_data['sd_volume'] = None
+        return self.cleaned_data
+
+
+
+class SmartphoneAdmin(admin.ModelAdmin):
+    change_form_template = 'admin.html'
+    form = SmartphoneAdminForm
+
+
+    list_display = ('title', 'price', 'category', 'image', 'slug')
+    list_display_links = ('title', 'price')
+    search_fields = ('title', 'price', 'category')
+
+
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'category':
+            return ModelChoiceField(Category.objects.filter(slug="smartphones"), label='Категория')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs) 
+
+
+
+
 class NotebookAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,15 +61,8 @@ class NotebookAdminForm(ModelForm):
         
         return self.cleaned_data['image']
 
-class SmartphoneAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'category', 'image', 'slug')
-    list_display_links = ('title', 'price')
-    search_fields = ('title', 'price', 'category')
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'category':
-            return ModelChoiceField(Category.objects.filter(slug="smartphones"), label='Категория')
-        return super().formfield_for_foreignkey(db_field, request, **kwargs) 
+
 
 class NotebookAdmin(admin.ModelAdmin):
 

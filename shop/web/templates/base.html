@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -14,12 +13,13 @@
     </head>
     <body class="body">
         <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
             <div class="container">
-                <a class="navbar-brand" href="#!" style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">Быстрая доставка и низкие цены</a>
+                <a class="navbar-brand" href="/" style="font-family: Cochin ;">Q-Market.kz</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto">
+                        <input type="text", class="search-bar" placeholder="Поиск...">
                         <li class="nav-item active">
                             <a class="nav-link" href="#!">
                                 Аккаунт
@@ -38,15 +38,16 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3">
-                    <h1 class="my-4">QMarket.kz</h1>
                     <div class="list-group">
-                        <a class="list-group-item" href="#!">{{smartphones.0.category}}</a>
-                        <a class="list-group-item" href="#!">{{laptops.0.category}}</a>
-                        <a class="list-group-item" href="#!">{{headphones.0.category}}</a>
-                        <a class="list-group-item" href="#!">{{powerbanks.0.category}}</a>
+                        <img src="{% static 'img/my-logo.png' %}" alt="logo", class="site-logo">
+                        <a class="list-group-item" href="smartphones"> Сматфоны</a>
+                        <a class="list-group-item" href="laptops"> Ноутбуки</a>
+                        <a class="list-group-item" href="headphones"> Наушники</a>
+                        <a class="list-group-item" href="powerbanks"> Внешние аккумуляторы</a>
                     </div>
                 </div>
                 <div class="col-lg-9">
+                    {% block content %}
                     <div class="carousel slide my-4" id="carouselExampleIndicators" data-ride="carousel">
                         <ol class="carousel-indicators">
                             <li class="active" data-target="#carouselExampleIndicators" data-slide-to="0"></li>
@@ -54,9 +55,9 @@
                             <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
                         </ol>
                         <div class="carousel-inner" role="listbox">
-                            <div class="carousel-item active"><img class="d-block img-fluid" src="{% static 'img/mobiles.jpg'%}" alt="First slide" /></div>
+                            <div class="carousel-item active"><img class="d-block img-fluid" src="{% static 'img/iphone12-pro-max.jpg'%}" alt="First slide" /></div>
                             <div class="carousel-item"><img class="d-block img-fluid" src="{% static 'img/laptop-ads.jpg' %}" alt="Second slide" /></div>
-                            <div class="carousel-item"><img class="d-block img-fluid" src="{% static 'img/apple-airpods-2.png'%}" alt="Third slide" /></div>
+                            <div class="carousel-item"><img class="d-block img-fluid" src="{% static 'img/xiaomi-11.jpg'%}" alt="Third slide" /></div>
                         </div>
                         <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
                             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -66,8 +67,8 @@
                             <span class="carousel-control-next-icon" aria-hidden="true"></span>
                             <span class="sr-only">Next</span>
                         </a>
-                    </div>
-                    <div class="row">
+                        </div>
+                        <div class="row">
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100">
                                 <a href="#!"><img class="card-img-top" src="/media/{{ smartphones.0.image }}" alt="..." /></a>
@@ -146,6 +147,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endblock content %}
                 </div>
             </div>
         </div>
