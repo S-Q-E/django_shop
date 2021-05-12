@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Результаты поиска</h1>
+    {% if object_list %}
+        {% for object in object_list %}
+            <div class="col-lg-4 col-md-6 mb-4", style="border: 2px double black; background: rgb(15, 130, 138); padding: 2px;">
+                <div class="card h-100">
+                    <a href="{{object.get_url}}"><img class="card-img-top" src="{{object.image.url}}" alt="..." /></a>
+                    <div class="card-body">
+                        <h4 class="card-title"><a href="{{object.get_url}}" style="color: black;">{{object.title}}</a></h4>
+                        <h5, style="color: black; font-size: 20px;">{{object.price}} KZT</h5>
+                    </div>
+                    {{object.content|safe}}
+                    <p><a class="btn btn-success" href="{{ object.get_url }}" style="font-size: 20px; color: black;">Читать далее</a></p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>По вашему запросу не найдено результатов <br>Попробуйте повторить запрос с другой формулировкой</p>
+    {% endif %}
+{% endblock content %}
+
+        

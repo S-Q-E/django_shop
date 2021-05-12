@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+    <head >
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
@@ -19,17 +19,12 @@
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto">
-                        <input type="text", class="search-bar" placeholder="Поиск...">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="#!">
-                                Аккаунт
-                                <span class="sr-only">(current)</span>
-                            </a>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="#!">Корзина</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#!">Контакты</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#!">О нас</a></li>
-                        
+                        <form class="form-inline my-2 my-lg-0" action="{% url 'search' %}">
+                            <input class="form-control mr-sm-2" type="search" placeholder="Поиск" aria-label="Search", name="search">
+                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'cart' %}">Корзина <span class="badge badge-pill badge-danger">{{cart.products.count}}</span> </a>
+                        </li>                        
                     </ul>
                 </div>
             </div>
@@ -40,10 +35,9 @@
                 <div class="col-lg-3">
                     <div class="list-group">
                         <img src="{% static 'img/my-logo.png' %}" alt="logo", class="site-logo">
-                        <a class="list-group-item" href="smartphones"> Сматфоны</a>
-                        <a class="list-group-item" href="laptops"> Ноутбуки</a>
-                        <a class="list-group-item" href="headphones"> Наушники</a>
-                        <a class="list-group-item" href="powerbanks"> Внешние аккумуляторы</a>
+                            {% for category in categories %}
+                                <a class="list-group-item" href="{{category.url}}"> {{category.name}} ({{category.count}})</a>
+                            {% endfor %}
                     </div>
                 </div>
                 <div class="col-lg-9">
@@ -69,84 +63,17 @@
                         </a>
                         </div>
                         <div class="row">
-                        <div class="col-lg-4 col-md-6 mb-4">
+                            {% for product in products %}
+                            <div class="col-lg-4 col-md-6 mb-4", style="border: 2px double black; background: rgb(15, 130, 138); padding: 2px;">
                             <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src="/media/{{ smartphones.0.image }}" alt="..." /></a>
+                                <a href="{{product.get_url}}"><img class="card-img-top" src="{{product.image.url}}" alt="..." /></a>
                                 <div class="card-body">
-                                    <h4 class="card-title",><a href="#!">{{smartphones.0.title}}</a></h4>
-                                    <h5>{{smartphones.0.price}} KZT</h5>
-                                    <p class="card-text">Диагональ: {{smartphones.0.diagonal}}</p>
-                                    <p class="card-text">Батарея {{smartphones.0.accum_volume}}</p>
-                                    <p class="card-text">Главная камера {{smartphones.0.main_cam}}</p>
+                                    <h4 class="card-title"><a href="{{product.get_url}}" style="color: black;">{{product.title}}</a></h4>
+                                    <h5, style="color: black; font-size: 20px;">{{product.price}} KZT</h5>
                                 </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src="/media/{{smartphones.1.image}}" alt="..." /></a>
-                                <div class="card-body">
-                                    <h4 class="card-title"><a href="#!">{{smartphones.1.title}}</a></h4>
-                                    <h5>{{smartphones.1.price}} KZT </h5>
-                                    <p class="card-text">Диагональ: {{smartphones.1.diagonal}}</p>
-                                    <p class="card-text">Батарея {{smartphones.1.accum_volume}}</p>
-                                    <p class="card-text">Главная камера {{smartphones.1.main_cam}}</p>
-                                </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src=/media/{{laptops.0.image}} alt="..." /></a>
-                                <div class="card-body">
-                                    <h4 class="card-title"><a href="#!">{{laptops.0.title}}</a></h4>
-                                    <h5>{{laptops.0.price}} KZT</h5>
-                                    <p class="card-text">OЗУ: {{laptops.0.ram}}</p>
-                                    <p class="card-text">Частота процессора: {{laptops.0.processor_freq}}</p>
-                                    <p class="card-text">Операционная система: {{laptops.0.os}}</p>
-                                </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src="/media/{{laptops.1.image}}" alt="..." /></a>
-                                <div class="card-body">
-                                    <h4 class="card-title"><a href="#!">{{laptops.1.titile}}</a></h4>
-                                    <h5>{{laptops.1.price}} KZT</h5>
-                                    <p class="card-text">OЗУ: {{laptops.1.ram}}</p>
-                                    <p class="card-text">Частота процессора: {{laptops.1.processor_freq}}</p>
-                                    <p class="card-text">Операционная система: {{laptops.1.os}}</p>
-                                </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src="/media/{{headphones.0.image}}" alt="..." /></a>
-                                <div class="card-body">
-                                    <h4 class="card-title"><a href="#!">{{headphones.0.title}}</a></h4>
-                                    <h5>{{headphones.0.price}} KZT</h5>
-                                    <p class="card-text">Тип подключения: {{headphones.0.connection_type}}</p>
-                                    <p class="card-text">Вид наушников: {{headphones.0.headphones_type}}</p>
-                                    <p class="card-text">Шумоподавление: {{headphones.0.noise_cancelling}}</p>
-                                </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100">
-                                <a href="#!"><img class="card-img-top" src="/media/{{powerbanks.0.image}}" alt="..." /></a>
-                                <div class="card-body">
-                                    <h4 class="card-title"><a href="#!">{{powerbanks.0.title}}</a></h4>
-                                    <h5>{{powerbanks.0.price}} KZT</h5>
-                                    <p class="card-text">Ёмкость батарей: {{powerbanks.0.battery_capacity}}Ma</p>
-                                    <p class="card-text">Разъемы: {{powerbanks.0.outputs}}</p>
-                                </div>
-                                <div class="card-footer"><small class="text-muted">★ ★ ★ ★ ☆</small></div>
-                            </div>
-                        </div>
-                    </div>
+                        {% endfor %}
                     {% endblock content %}
                 </div>
             </div>

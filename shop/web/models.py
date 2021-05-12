@@ -5,6 +5,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils import timezone
 from PIL import Image
 from django.urls import reverse
+from django.db import models
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -12,7 +14,32 @@ def get_product_url(obj, viewname):
     ct_model = obj.__class__._meta.model_name
     return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
 
+
+
+class CategoryManager(models.Manager):
+    CATEGORY_NAME_COUNT_NAME = {
+        'Ноутбуки': 'notebook__count',
+        'Смартфоны': 'smartphone__count',
+        'Наушники': 'headphones__count',
+        'Внешние аккумуляторы' : 'powerbank__count'
+    }
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def get_models_for_count(self, *model_names):
+        return [models.Count(model_name) for model_name in model_names]
+
+    def get_categories_for_left_sidebar(self):
+        models = self.get_models_for_count('notebook', 'smartphone', 'headphones','powerbank')
+        qs = list(self.get_queryset().annotate(*models))
+        data = [
+            dict(name=c.name, url=c.get_url(), count=getattr(c, self.CATEGORY_NAME_COUNT_NAME[c.name]))
+            for c in qs
+        ]
+        return data
     
+
 class Category(models.Model):
     
     class Meta:
@@ -21,9 +48,14 @@ class Category(models.Model):
 
     name = models.CharField(max_length=200, verbose_name='Название')
     slug = models.SlugField(unique=True)
+    objects = CategoryManager()
 
     def __str__(self):
         return self.name
+
+
+    def get_url(self):
+        return reverse('category_detail', kwargs={'slug': self.slug})
 
 
 class Product(models.Model):
@@ -57,8 +89,25 @@ class Product(models.Model):
     def get_url(self):
         return get_product_url(self, 'product_detail')
 
-class PowerBank(Product):
 
+    def get_model_name(self):
+        return self.__class__.__name__.lower()
+
+
+class PowerBankManager(models.Manager):
+    use_for_related_fields = True
+ 
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query:
+            or_lookup = (Q(title__icontains=query) | Q(description__icontains=query))
+            qs = qs.filter(or_lookup)
+ 
+        return qs
+
+
+class PowerBank(Product):
+    objects = PowerBankManager()
     class Meta:
         verbose_name = 'Внешний аккумулятор'
         verbose_name_plural = 'Внешние аккумуляторы'
@@ -82,7 +131,21 @@ class PowerBank(Product):
 
 
 
+class HeadPhonesManager(models.Manager):
+    use_for_related_fields = True
+ 
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query:
+            or_lookup = (Q(title__icontains=query) | Q(description__icontains=query))
+            qs = qs.filter(or_lookup)
+ 
+        return qs
+
+
 class HeadPhones(Product):
+    objects = HeadPhonesManager()
+
     class Meta:
         verbose_name='Наушники'
         verbose_name_plural='Наушники'
@@ -120,9 +183,21 @@ class HeadPhones(Product):
     microphone = models.BooleanField(default=False, verbose_name='Микрофон')
     noise_cancelling = models.CharField(max_length=255, verbose_name='Шумоподавление', choices=CENCELLING_CHOICES, default=DEFAULT_CENCELLING)
 
+ 
+class NotebookManager(models.Manager):
+    use_for_related_fields = True
+ 
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query:
+            or_lookup = (Q(title__icontains=query) | Q(description__icontains=query))
+            qs = qs.filter(or_lookup)
+ 
+        return qs
+
 
 class Notebook(Product):
-
+    objects = NotebookManager()
     class Meta:
         verbose_name = 'ноутбук' 
         verbose_name_plural = 'Ноутбуки'
@@ -136,8 +211,20 @@ class Notebook(Product):
     os = models.CharField(max_length=250, verbose_name='Операционная система')
 
 
+class SmartphoneManager(models.Manager):
+    use_for_related_fields = True
+ 
+    def search(self, query=None):
+        qs = self.get_queryset()
+        if query:
+            or_lookup = (Q(title__icontains=query) | Q(description__icontains=query))
+            qs = qs.filter(or_lookup)
+ 
+        return qs
+
+
 class Smartphone(Product):
-    
+    objects = SmartphoneManager()
     class Meta:
         verbose_name = 'смартфон' 
         verbose_name_plural = 'Смартфоны'
@@ -175,6 +262,14 @@ class Cart(models.Model):
     def __str__(self):
         return str(self.id)
 
+    def save(self, *args, **kwargs):
+        cart_data = self.products.aggregate(models.Sum('final_price'), models.Count('id'))
+        if cart_data.get('final_price__sum'):
+            self.final_price = cart_data['final_price__sum']
+        else:
+            self.final_price = 0
+        self.total_products = cart_data['id__count']
+        super().save(*args,**kwargs)
 
 class CartProduct(models.Model):
 
@@ -194,17 +289,23 @@ class CartProduct(models.Model):
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена', default=0)
 
     def __str__(self):
-        return 'Продукт %s из корзины %d' % (self.content_object.title, self.cart.id)
+        return 'Продукт %s из корзины %d' % (self.content_object, self.cart.id)
 
 
+    def save(self, *args, **kwargs):
+        self.final_price = self.quantity * self.content_object.price
+        super().save(*args, **kwargs)
+
+
+    
 class Customer(models.Model):
     class Meta:
         verbose_name = 'Покупатель'
         verbose_name_plural = 'Покупатели'
 
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE)
-    phone = models.CharField(max_length=255, verbose_name='Номер телефона')
-    address = models.CharField(max_length=255, verbose_name='Адрес')
+    phone = models.CharField(max_length=255, verbose_name='Номер телефона', null=True, blank=True)
+    address = models.CharField(max_length=255, verbose_name='Адрес', null=True, blank=True)
     orders = models.ManyToManyField('Order', verbose_name='Заказы покупателя', related_name='orders', null=True, blank=True)
 
 
@@ -282,7 +383,7 @@ class LatestProductManager:
 
         if with_respect_to and with_respect_to in args:
             for ct_model in ct_models:
-                model_products = ct_model.model_class()._base_manager.all().order_by('-id')[:count(i)]
+                model_products = ct_model.model_class()._base_manager.all().order_by('-id')[:count]
                 products.extend(model_products)
             
             ct_models = ContentType.objects.filter(model=with_respect_to)
