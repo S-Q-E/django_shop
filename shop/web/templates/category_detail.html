@@ -15,6 +15,8 @@
                     <div class="card-body">
                         <h4 class="card-title"><a href="{{ product.get_url }}">{{ product.title }}</a></h4>
                         <h5>{{ product.price }} тнг.</h5>
+                        <br>
+                        <a href="{% url 'add_to_cart' ct_model=product.get_model_name slug=product.slug %}" style="padding: 7px; background-color: rgb(4, 77, 4); font-size: 18px;; color: white; border-radius: 15px ;">Добавить в корзину</a>
                     </div>
                 </div>
             </div>

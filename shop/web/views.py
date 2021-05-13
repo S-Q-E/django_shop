@@ -1,13 +1,15 @@
 from itertools import chain
+from django.core.checks import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, request
 from .models import *
 from django.views.generic import DetailView, View
 from .mixins import CategoryDetailMixin, CartMixin
 from django.db.models import Q
-
+from .forms import OrderForm
+from .utils import recalc_cart
 
 class IndexView(CartMixin, View):
     def get(self, request,*args, **kwargs):
@@ -41,6 +43,7 @@ class ProductDetailView(CartMixin, CategoryDetailMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['ct_model'] = self.model._meta.model_name
+        context['cart'] = self.cart
         return context
 
 
@@ -54,6 +57,7 @@ class CategoryDetailView(CartMixin, CategoryDetailMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['cart'] = self.cart
         return context
 
 
@@ -69,6 +73,22 @@ class CartView(CartMixin, View):
         }
         return render(request, 'cart.html', context)
 
+
+class CheckoutView(CartMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.get_categories_for_left_sidebar()
+        form = OrderForm(request.POST or None)
+        context = {
+            'cart': self.cart,
+            'categories': categories,
+            'form': form 
+        }
+        return render(request, 'check-out.html', context)
+
+
+
+
 class AddToCartView(CartMixin, View):
     
     def get(self, request, *args, **kwargs):
@@ -80,7 +100,7 @@ class AddToCartView(CartMixin, View):
         )
         if created:
             self.cart.products.add(cart_product)
-        self.cart.save()
+        recalc_cart(self.cart)
         return HttpResponseRedirect('/cart/')
 
 
@@ -96,7 +116,7 @@ class DeleteFromCartView(CartMixin, View):
         )
         self.cart.products.remove(cart_product)
         cart_product.delete()
-        self.cart.save()
+        recalc_cart(self.cart)
         return HttpResponseRedirect('/cart/')
 
 
@@ -112,43 +132,64 @@ class ChangeQtyView(CartMixin, View):
         qty = int(request.POST.get('qty'))
         cart_product.quantity = qty
         cart_product.save()
-        self.cart.save()
+        recalc_cart(self.cart)
         return HttpResponseRedirect('/cart/')
 
 
+class MakeOrderView(CartMixin, View):
 
+    def post(self, *args, **kwargs):
+        form = OrderForm(request.POST or None)
+        
+        if form.is_valid():
+            new_order = form.save(commit=False)
+            new_order.customer = Customer.objects.get(user=request.user)
+            new_order.first_name = form.cleaned_data['firs_name']
+            new_order.last_name = form.cleaned_data['last_name']
+            new_order.phone = form.cleaned_data['phone']
+            new_order.address = form.cleaned_data['address']
+            new_order.delivery_type = form.cleaned_data['delivery_type']
+            new_order.order_date = form.cleaned_data['order_date']
+            new_order.save()
+            self.cart.in_order = True
+            self.cart.save()
+            new_order.cart = self.cart
+            new_order.save()
+            messages.add_message(request, messages.INFO, 'Спасибо за заказ! Менеджер свяжется с вами в ближайшее время!')
+            return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/check_out/')
 
-class SearchView(CartMixin, CategoryDetailMixin, View):
+# class SearchView(CartMixin, CategoryDetailMixin, View):
     
-    def get(self, request, *args, **kwargs):
-        context = {}
-        search_query = request.GET.get('search')
-        if search_query:
-            query_sets = []
+#     def get(self, request, *args, **kwargs):
+#         context = {}
+#         search_query = request.GET.get('search')
+#         if search_query:
+#             query_sets = []
 
-            query_sets.append(Smartphone.objects.search(query=search_query))
-            query_sets.append(Notebook.objects.search(query=search_query))
-            query_sets.append(HeadPhones.objects.search(query=search_query))
-            query_sets.append(PowerBank.objects.search(query=search_query))
+#             query_sets.append(Smartphone.objects.search(query=search_query))
+#             query_sets.append(Notebook.objects.search(query=search_query))
+#             query_sets.append(HeadPhones.objects.search(query=search_query))
+#             query_sets.append(PowerBank.objects.search(query=search_query))
 
-            final_set = list(chain(*query_sets))
-            final_set.sort(key=lambda x: x.id, reverse=True)
+#             final_set = list(chain(*query_sets))
+#             final_set.sort(key=lambda x: x.id, reverse=True)
             
 
-            context['last_question'] = '?q=%s' % search_query
+#             context['last_question'] = '?q=%s' % search_query
 
-            current_page = Paginator(final_set,10)
+#             current_page = Paginator(final_set,10)
 
-            page = request.GET.get('')
-            try:
-                context['object_list'] = current_page.page(page)
-            except PageNotAnInteger:
-                context['object_list'] = current_page.page(1)
-            except EmptyPage:
-                context['object_list'] = current_page.page(current_page.num_pages)
+#             page = request.GET.get('')
+#             try:
+#                 context['object_list'] = current_page.page(page)
+#             except PageNotAnInteger:
+#                 context['object_list'] = current_page.page(1)
+#             except EmptyPage:
+#                 context['object_list'] = current_page.page(current_page.num_pages)
             
 
-        return render(request, 'search.html',context)
+#         return render(request, 'search.html' ,context)
 
 
 
