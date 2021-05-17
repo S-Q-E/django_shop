@@ -1,5 +1,5 @@
 from itertools import chain
-from django.core.checks import messages
+from django.core.checks import messages as mes
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +10,8 @@ from .mixins import CategoryDetailMixin, CartMixin
 from django.db.models import Q
 from .forms import OrderForm
 from .utils import recalc_cart
+from django.contrib import messages 
+
 
 class IndexView(CartMixin, View):
     def get(self, request,*args, **kwargs):
@@ -138,13 +140,12 @@ class ChangeQtyView(CartMixin, View):
 
 class MakeOrderView(CartMixin, View):
 
-    def post(self, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         form = OrderForm(request.POST or None)
-        
         if form.is_valid():
             new_order = form.save(commit=False)
             new_order.customer = Customer.objects.get(user=request.user)
-            new_order.first_name = form.cleaned_data['firs_name']
+            new_order.first_name = form.cleaned_data['first_name']
             new_order.last_name = form.cleaned_data['last_name']
             new_order.phone = form.cleaned_data['phone']
             new_order.address = form.cleaned_data['address']
@@ -159,37 +160,37 @@ class MakeOrderView(CartMixin, View):
             return HttpResponseRedirect('/')
         return HttpResponseRedirect('/check_out/')
 
-# class SearchView(CartMixin, CategoryDetailMixin, View):
+class SearchView(CartMixin, CategoryDetailMixin, View):
     
-#     def get(self, request, *args, **kwargs):
-#         context = {}
-#         search_query = request.GET.get('search')
-#         if search_query:
-#             query_sets = []
+    def get(self, request, *args, **kwargs):
+        context = {}
+        search_query = request.GET.get('search')
+        if search_query:
+            query_sets = []
 
-#             query_sets.append(Smartphone.objects.search(query=search_query))
-#             query_sets.append(Notebook.objects.search(query=search_query))
-#             query_sets.append(HeadPhones.objects.search(query=search_query))
-#             query_sets.append(PowerBank.objects.search(query=search_query))
+            query_sets.append(Smartphone.objects.search(query=search_query))
+            query_sets.append(Notebook.objects.search(query=search_query))
+            query_sets.append(HeadPhones.objects.search(query=search_query))
+            query_sets.append(PowerBank.objects.search(query=search_query))
 
-#             final_set = list(chain(*query_sets))
-#             final_set.sort(key=lambda x: x.id, reverse=True)
+            final_set = list(chain(*query_sets))
+            final_set.sort(key=lambda x: x.id, reverse=True)
             
 
-#             context['last_question'] = '?q=%s' % search_query
+            context['last_question'] = '?q=%s' % search_query
+            context['cart'] = self.cart
+            current_page = Paginator(final_set,10)
 
-#             current_page = Paginator(final_set,10)
-
-#             page = request.GET.get('')
-#             try:
-#                 context['object_list'] = current_page.page(page)
-#             except PageNotAnInteger:
-#                 context['object_list'] = current_page.page(1)
-#             except EmptyPage:
-#                 context['object_list'] = current_page.page(current_page.num_pages)
+            page = request.GET.get('')
+            try:
+                context['object_list'] = current_page.page(page)
+            except PageNotAnInteger:
+                context['object_list'] = current_page.page(1)
+            except EmptyPage:
+                context['object_list'] = current_page.page(current_page.num_pages)
             
 
-#         return render(request, 'search.html' ,context)
+        return render(request, 'search.html' ,context)
 
 
 

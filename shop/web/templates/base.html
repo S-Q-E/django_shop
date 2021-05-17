@@ -19,12 +19,13 @@
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto">
-                        <form class="form-inline my-2 my-lg-0" action="#">
+                        <form class="form-inline my-2 my-lg-0" action="{% url 'search' %}">
                             <input class="form-control mr-sm-2" type="search" placeholder="Поиск" aria-label="Search", name="search">
                             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
-                        <li class="nav-item">
+                        </form>
+                            <li class="nav-item">
                             <a class="nav-link" href="{% url 'cart' %}">Корзина <span class="badge badge-pill badge-danger">{{cart.products.count}}</span> </a>
-                        </li>                        
+                        </li>    
                     </ul>
                 </div>
             </div>
@@ -43,12 +44,12 @@
                 <div class="col-lg-9">
                     {% block content %}
                     {% if messages %}
-                        {% for message in message %}
+                        {% for message in messages %}
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <strong>{{message}}</strong>
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true" >x</span>
-                            </button>
+                            </button>   
                         </div>
                         {% endfor %}
                     {% endif %}

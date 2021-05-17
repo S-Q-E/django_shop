@@ -10,8 +10,8 @@ urlpatterns = [
     path('remove-from-cart/<str:ct_model>/<str:slug>/', DeleteFromCartView.as_view(), name='remove_from_cart'),
     path('change-qty/<str:ct_model>/<str:slug>/', ChangeQtyView.as_view(), name='change_qty'),
     path('check-out/', CheckoutView.as_view(), name='check_out'),
-    path('make_order/', MakeOrderView.as_view(), name='make_order')
-    # path('search/', SearchView.as_view(), name='search')
+    path('make_order/', MakeOrderView.as_view(), name='make_order'),
+    path('search/', SearchView.as_view(), name='search')
 ]
 
 
